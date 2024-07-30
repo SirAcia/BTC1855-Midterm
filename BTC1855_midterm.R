@@ -175,10 +175,48 @@ cancelled <- trip2 %>%
 cancelled_trips <- cancelled$id
 
 # Removing cancelled trips from trip dataset
-trips3 <- trip2 %>% 
-  filter(!(duration_seconds > 180 & start_station_id == end_station_id))
+trip3 <- trip2 %>% 
+  filter(!(duration_seconds < 180 & start_station_id == end_station_id))
 
 
+#` ---------------------------------------------------------------
 
+# Identifying outliers 
 
+# Converting duration into minutes to more easily comprehend
+trip3$duration_minutes <- trip3$duration_seconds/60
+
+summary(trip3)
+# As the other variables are descriptive (i.e. describing the context of the trip)
+# the only major concern for outliers is the duration variable (as it will correlate
+# with other outliers in start/end date, etc.)
+
+# From EDA earlier (histogram of duration), the mast majority of trips are 
+# of short duration, with extreme values creating large positive skew 
+sort(trip3$duration_minutes, decreasing = T)
+
+# Using standard deviation to determine upper limit
+std_dev <- sd(trip3$duration_seconds, na.rm = TRUE)
+
+duration_mean <- mean(trip3$duration_seconds, na.rm = TRUE)
+
+# Defining upper limit for duration, using 3.5*standard deviation as upper limit
+# to account for huge positive skew and 3.5 times equates to approx. 75 hours.
+# Just over 2 days is a reasonable upper limit for a BIKE rental 
+max_limit <- duration_mean + 3.5*std_dev
+
+# Saving outlier ids
+otler <- trip3 %>% 
+  filter(!(duration_seconds <= max_limit & duration_seconds >= 180))
+
+outliers <- otler$id 
+
+sort(trip3$duration_minutes, decreasing = F)
+# As using st dev is not feasible for lower limit (as it becomes negative), 
+# using lower limit of 180 seconds (set by personal choice, assuming 180 seconds
+# is an adequate amount of time for a "test ride" or really fast ride around a station
+
+# Removing outliers and saving as new dataset
+trip4 <- trip3 %>% 
+  filter(duration_seconds <= max_limit & duration_seconds >= 180)
 
