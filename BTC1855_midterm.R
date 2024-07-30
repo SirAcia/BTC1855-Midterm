@@ -388,3 +388,25 @@ wknd_end_table <- weekends %>%
 
 wknd_end_table
 
+
+#` ---------------------------------------------------------------
+
+month_total <- trip4 %>%
+  mutate(month = month(start_date)) %>%
+  group_by(month) %>%
+  summarise(month_duration = sum(duration_seconds, na.rm = T))
+
+
+#seconds in Jan 2014
+jan_sec <- 31*24*60*60
+
+#seconds in Feb 2014
+feb_sec <- 28*24*60*60
+
+#seconds in Feb 2014
+feb_sec <- 28*24*60*60
+
+
+
+
+
