@@ -339,10 +339,18 @@ axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
 weekdays$hours <-  hour(weekdays$start_date)
 
 rush_hours <- weekdays %>%
-  filter(hours <= 6 & hours >= 18) %>% 
-  filter(hours >= 9 | hours <= 15)
+  filter(hours >= 6) %>%
+  filter(hours <= 18) %>%
+  filter(hours != 10) %>% 
+  filter(hours != 11) %>% 
+  filter(hours != 12) %>% 
+  filter(hours != 13) %>% 
+  filter(hours != 14) 
 
+rush_start_table <- rush_hours %>%
+  count(rush_hours$start_station) 
 
+rush_start_table
 
 
 
