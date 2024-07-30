@@ -388,4 +388,3 @@ wknd_end_table <- weekends %>%
 
 wknd_end_table
 
-
