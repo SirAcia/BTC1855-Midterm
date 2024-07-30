@@ -369,7 +369,22 @@ rush_end_table
 
 #` ---------------------------------------------------------------
 
+# Most used stations on weekends 
+# Using weekends dataframe created previously 
 
+# Using dplyr to use weekends dataset to count the start station names for each trip
+# and then arrange them by descending order, all stored as new table. 
+wknd_start_table <- weekends %>%
+  count(weekends$start_station) %>%
+  arrange(desc(n))
 
+wknd_start_table
 
+# Using dplyr to use weekends dataset to count the end station names for each trip
+# and then arrange them by descending order, all stored as new table. 
+wknd_end_table <- weekends %>%
+  count(weekends$end_station) %>%
+  arrange(desc(n))
+
+wknd_end_table
 
