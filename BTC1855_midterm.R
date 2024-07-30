@@ -391,36 +391,45 @@ wknd_end_table
 
 #` ---------------------------------------------------------------
 
+# Finding average utilisation of bikes per month
+
+# Similar to previous task, cretaing month variable for when trip was taken 
+# grouping by month and summing the total duration of trips per month
 month_total <- trip4 %>%
   mutate(month = month(start_date)) %>%
   group_by(month) %>%
   summarise(month_duration = sum(duration_seconds, na.rm = T))
+# NOTE: using the raw duration in seconds here as sum cannot be used on POSix
+# and that using the start and end dates (in POSix) only record the hour & minute 
+# of the trip. Using the difference between start and end date (i.e. with 
+# time_length() results in rounding up/down to the nearest minute)
 
 
-#seconds in Jan (1), Mar (3), May(5), Jul(7), Aug(8), Oct(10), Dec(12) of 2014
+# Calculating seconds in Jan (1), Mar (3), May(5), Jul(7), Aug(8), Oct(10), Dec(12) of 2014
 sec_31 <- 31*24*60*60
 
-#seconds in Feb (2) 2014
+# Calculating seconds in Feb (2) of 2014
 feb_sec <- 28*24*60*60
 
-#seconds in Apr (4), Jun(6), Sep(9), Nov(11) of 2014
+# Calculating seconds in Apr (4), Jun(6), Sep(9), Nov(11) of 2014
 sec_30 <-31*24*60*60
 
-month_total$avrge <- NA
+# Initializing empty column to store monthly average in table 
+month_total$average <- NA
 
-for (i in seq_along(nrow(month_total))) {
-  if (month_total$month[i] %in% c(1, 3, 5, 7, 8, 10, 12)){
-    month_total$avrge[i] <- month_total$month_duration[i]/sec_31
-  }
-  
-  if (month_total$month[i] == 2){
-    month_total$avrge[i] <- month_total$month_duration[i]/feb_sec
-  }
-  
-  if (month_total$month[i] %in% c(4, 6, 9, 11)){
-    month_total$avrge[i] <- month_total$month_duration[i]/sec_30
+# Using for loop along the length of monthy_total, calculating average use depending on month
+for (i in seq_len(nrow(month_total))) {
+  if (month_total$month[i] %in% c(1, 3, 5, 7, 8, 10, 12)){ # If month is Jan, Mar, an (1), Mar (3), May(5), Jul(7), Aug(8), Oct(10), Dec(12) 
+    month_total$average[i] <- month_total$month_duration[i]/sec_31
+  } else if (month_total$month[i] == 2){ # If month is Feb
+    month_total$average[i] <- month_total$month_duration[i]/feb_sec
+  } else if (month_total$month[i] %in% c(4, 6, 9, 11)){ # If month is Apr (4), Jun(6), Sep(9), Nov(11)
+    month_total$average[i] <- month_total$month_duration[i]/sec_30
   }
 }
+
+# Displaying month's usage and month's average utilisation
+month_total
 
 
 
