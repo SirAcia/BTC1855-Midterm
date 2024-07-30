@@ -369,6 +369,11 @@ rush_end_table
 
 #` ---------------------------------------------------------------
 
+# Most used stations on weekends 
+wknd_start_table <- weekends %>%
+  count(weekends$start_station) %>%
+  arrange(desc(n))
 
+wknd_start_table
 
 
