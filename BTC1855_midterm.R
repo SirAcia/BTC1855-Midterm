@@ -220,3 +220,91 @@ sort(trip3$duration_minutes, decreasing = F)
 trip4 <- trip3 %>% 
   filter(duration_seconds <= max_limit & duration_seconds >= 180)
 
+
+#` ---------------------------------------------------------------
+
+#Identifying Rush Hours 
+
+# Examining start date as you needa bike when you start a trip, not when you end a trip
+summary(trip3$start_date)
+
+# Using wkday() to determine what day of the week the trip started on, 1 = SUNDAY 
+trip3$wkday_start <- wday(trip3$start_date)
+
+# Saving weekends as different dataset
+weekends <- trip3 %>%
+  filter(wkday_start == 1 | wkday_start == 7)
+
+# Saving weekdays as different dataset
+weekdays <- trip3 %>%
+  filter(!(wkday_start == 1 | wkday_start == 7))
+
+# Mutating weekdays to create month and hour for start date, grouping by month 
+# and then sorting to get Mondays for each month
+mondays <- weekdays %>%
+  mutate(month = month(weekdays$start_date)) %>%
+  mutate(hour = hour(weekdays$start_date)) %>%
+  filter(wkday_start == 2) %>%
+  group_by(month) 
+
+# Setting vector to use for graph labels in histograms below
+graph_lbls <- seq(from = 0, to = 23, by = 1)
+
+# Plotting histogram for start times on Mondays of every month 
+hist(mondays$hour, breaks = 24, main = "Monday Trip Start Times, 2014", 
+     xlab = "Hour of the Day", col = "lightgreen", xaxt = "n")
+axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
+
+# Mutating to get hour and month for Tuesday, sorting by month and filtering 
+tuesdays <- weekdays %>%
+  mutate(month = month(weekdays$start_date)) %>%
+  mutate(hour = hour(weekdays$start_date)) %>%
+  filter(wkday_start == 3) %>%
+  group_by(month) 
+
+# Plotting histogram for start times on Tuesdays of every month 
+hist(tuesdays$hour, breaks = 24, main = "Tuesday Trip Start Times, 2014", 
+     xlab = "Hour of the Day", col = "lightblue", xaxt = "n")
+axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
+
+# Mutating to get hour and month for Wednesday, sorting by month and filtering 
+wednesdays <- weekdays %>%
+  mutate(month = month(weekdays$start_date)) %>%
+  mutate(hour = hour(weekdays$start_date)) %>%
+  filter(wkday_start == 4) %>%
+  group_by(month) 
+
+# Plotting histogram for start times on Wednesday of every month 
+hist(tuesdays$hour, breaks = 24, main = "Wednesday Trip Start Times, 2014", 
+     xlab = "Hour of the Day", col = "#FF66CC", xaxt = "n")
+axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
+
+# Mutating to get hour and month for Thursday, sorting by month and filtering 
+thursdays <- weekdays %>%
+  mutate(month = month(weekdays$start_date)) %>%
+  mutate(hour = hour(weekdays$start_date)) %>%
+  filter(wkday_start == 5) %>%
+  group_by(month) 
+
+# Plotting histogram for start times on Thursdays of every month 
+hist(thursdays$hour, breaks = 24, main = "Thursday Trip Start Times, 2014", 
+     xlab = "Hour of the Day", col = "#66CC66", xaxt = "n")
+axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
+
+# Mutating to get hour and month for Fridays, sorting by month and filtering 
+fridays <- weekdays %>%
+  mutate(month = month(weekdays$start_date)) %>%
+  mutate(hour = hour(weekdays$start_date)) %>%
+  filter(wkday_start == 6) %>%
+  group_by(month) 
+
+# Plotting histogram for start times on Fridays of every month 
+hist(fridays$hour, breaks = 24, main = "Friday Trip Start Times, 2014", 
+     xlab = "Hour of the Day", col = "#CC66FF", xaxt = "n")
+axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
+
+# Examining the histograms, it seems that the rush hours for weekdays are 
+# 06:00 - 09:00 and 15:00 - 18:00. 
+
+
+
