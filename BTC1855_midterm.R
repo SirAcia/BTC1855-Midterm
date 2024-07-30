@@ -307,4 +307,45 @@ axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
 # 06:00 - 09:00 and 15:00 - 18:00. 
 
 
+#` ---------------------------------------------------------------
+
+#Do rush hours extend to the weekend? 
+# Mutating to get hour and month for Saturays, sorting by month and filtering 
+saturdays <- weekends %>%
+  mutate(month = month(weekends$start_date)) %>%
+  mutate(hour = hour(weekends$start_date)) %>%
+  filter(wkday_start == 7) %>%
+  group_by(month) 
+
+# Plotting histogram for start times on Saturdays of every month 
+hist(saturdays$hour, breaks = 24, main = "Saturday Trip Start Times, 2014", 
+     xlab = "Hour of the Day", col = "#CC66FF", xaxt = "n")
+axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
+
+# Mutating to get hour and month for Sundays, sorting by month and filtering 
+sundays <- weekends %>%
+  mutate(month = month(weekends$start_date)) %>%
+  mutate(hour = hour(weekends$start_date)) %>%
+  filter(wkday_start == 1) %>%
+  group_by(month) 
+
+# Plotting histogram for start times on Saturdays of every month 
+hist(sundays$hour, breaks = 24, main = "Sunday Trip Start Times, 2014", 
+     xlab = "Hour of the Day", col = "#CC66FF", xaxt = "n")
+axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
+
+#No, rush hours only for weekdays - makes sense 
+
+weekdays$hours <-  hour(weekdays$start_date)
+
+rush_hours <- weekdays %>%
+  filter(hours <= 6 & hours >= 18) %>% 
+  filter(hours >= 9 | hours <= 15)
+
+
+
+
+
+
+
 
