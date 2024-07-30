@@ -397,16 +397,30 @@ month_total <- trip4 %>%
   summarise(month_duration = sum(duration_seconds, na.rm = T))
 
 
-#seconds in Jan 2014
-jan_sec <- 31*24*60*60
+#seconds in Jan (1), Mar (3), May(5), Jul(7), Aug(8), Oct(10), Dec(12) of 2014
+sec_31 <- 31*24*60*60
 
-#seconds in Feb 2014
+#seconds in Feb (2) 2014
 feb_sec <- 28*24*60*60
 
-#seconds in Feb 2014
-feb_sec <- 28*24*60*60
+#seconds in Apr (4), Jun(6), Sep(9), Nov(11) of 2014
+sec_30 <-31*24*60*60
 
+month_total$avrge <- NA
 
+for (i in seq_along(nrow(month_total))) {
+  if (month_total$month[i] %in% c(1, 3, 5, 7, 8, 10, 12)){
+    month_total$avrge[i] <- month_total$month_duration[i]/sec_31
+  }
+  
+  if (month_total$month[i] == 2){
+    month_total$avrge[i] <- month_total$month_duration[i]/feb_sec
+  }
+  
+  if (month_total$month[i] %in% c(4, 6, 9, 11)){
+    month_total$avrge[i] <- month_total$month_duration[i]/sec_30
+  }
+}
 
 
 
