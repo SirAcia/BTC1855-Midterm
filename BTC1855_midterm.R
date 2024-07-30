@@ -1,6 +1,5 @@
 #' BTC1855 - Midterm, Zachery Chan
 #' R version: Version 2024.04.2+764 (2024.04.2+764)
-#' Code dated to: July 29
 
 #` ---------------------------------------------------------------
 
@@ -49,6 +48,10 @@ glimpse(trip)
 glimpse(station)
 
 glimpse(weather)
+
+basic_eda(trip)
+
+basic_eda(weather)
 
 # Checking for missingness 
 anyNA(trip)
@@ -128,4 +131,40 @@ station1$city_fctr <- factor(station1$city)
 
 # Converting to POSix
 station1$installation_date_alt <- mdy(station1$installation_date)
+
+# Saving new data structures in new data frames
+trip2 <- data.frame(trip1$id, trip1$duration, trip1$duration_alt, trip1$start_date_alt, 
+                    trip1$start_station_name_fctr, trip1$start_station_id_fctr, 
+                    trip1$end_date_alt, trip1$end_station_name_fctr, 
+                    trip1$end_station_id_fctr, trip1$bike_id, 
+                    trip1$subscription_type_fctr, trip1$zip_code)
+colnames(trip2) <- c("id", "duration_seconds", "duration_POSix", "start_date",
+                     "start_station", "start_station_id", "end_date", 
+                     "end_station", "end_station_id", "bike_id", "subscription_type", 
+                     "zip_code")
+
+weather2 <- data.frame(weather1$date_alt, weather1$max_temperature_f, 
+                       weather1$mean_temperature_f, weather1$min_temperature_f, 
+                       weather1$max_visibility_miles, weather1$mean_visibility_miles, 
+                       weather1$min_visibility_miles, weather1$max_wind_Speed_mph, 
+                       weather1$mean_wind_speed_mph, weather1$max_gust_speed_mph, 
+                       weather1$precipitation_inches, weather1$cloud_cover, 
+                       weather1$events_fctr, weather1$zip_code,
+                       weather1$city_fctr)
+
+colnames(weather2) <- c(
+  "date", "max_temperature_f", "mean_temperature_f", "min_temperature_f", 
+  "max_visibility_miles", "mean_visibility_miles", "min_visibility_miles", 
+  "max_wind_speed_mph", "mean_wind_speed_mph", "max_gust_speed_mph", 
+  "precipitation_inches", "cloud_cover", "events", "zip_code", "city")
+
+station2 <- data.frame(station1$id, station1$name, station1$lat, station1$long, 
+                       station1$dock_count, station1$city_fctr, station1$installation_date_alt)
+
+colnames(station2) <- c("id", "name", "lat", "long", "dock_count", "city",
+                        "installation_date")
+
+
+
+
 
