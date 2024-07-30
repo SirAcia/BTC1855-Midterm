@@ -175,10 +175,24 @@ cancelled <- trip2 %>%
 cancelled_trips <- cancelled$id
 
 # Removing cancelled trips from trip dataset
-trips3 <- trip2 %>% 
-  filter(!(duration_seconds > 180 & start_station_id == end_station_id))
+trip3 <- trip2 %>% 
+  filter(!(duration_seconds < 180 & start_station_id == end_station_id))
 
 
+#` ---------------------------------------------------------------
+trip3$duration_minutes <- trip3$duration_seconds/60
+summary(trip3)
+sort(trip3$duration_minutes, decreasing = T)
 
+std_dev <- sd(trip3$duration_seconds, na.rm = TRUE)
 
+duration_mean <- mean(trip3$duration_seconds, na.rm = TRUE)
+
+max_limit <- duration_mean + 3.5*std_dev
+
+outliers <- trip3 %>% 
+  filter(!(duration_seconds <= max_limit & duration_seconds >= 180))
+
+trip4 <- trip3 %>% 
+  filter(duration_seconds <= max_limit & duration_seconds >= 180)
 
