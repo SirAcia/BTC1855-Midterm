@@ -164,6 +164,20 @@ station2 <- data.frame(station1$id, station1$name, station1$lat, station1$long,
 colnames(station2) <- c("id", "name", "lat", "long", "dock_count", "city",
                         "installation_date")
 
+#` ---------------------------------------------------------------
+
+# Identifying cancelled trips of trips with less than 180 seconds (3 minutes)
+# and trips that start and end at the same station, storing trip ids 
+cancelled <- trip2 %>% 
+  filter(duration_seconds < 180 & start_station_id == end_station_id)
+
+# Storing cancelled trips 
+cancelled_trips <- cancelled$id
+
+# Removing cancelled trips from trip dataset
+trips3 <- trip2 %>% 
+  filter(!(duration_seconds > 180 & start_station_id == end_station_id))
+
 
 
 
