@@ -309,8 +309,8 @@ axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
 
 #` ---------------------------------------------------------------
 
-#Do rush hours extend to the weekend? 
-# Mutating to get hour and month for Saturays, sorting by month and filtering 
+# Do rush hours extend to the weekend? 
+# Mutating to get hour and month for Saturdays, sorting by month and filtering 
 saturdays <- weekends %>%
   mutate(month = month(weekends$start_date)) %>%
   mutate(hour = hour(weekends$start_date)) %>%
@@ -329,31 +329,45 @@ sundays <- weekends %>%
   filter(wkday_start == 1) %>%
   group_by(month) 
 
-# Plotting histogram for start times on Saturdays of every month 
+# Plotting histogram for start times on Sundays of every month 
 hist(sundays$hour, breaks = 24, main = "Sunday Trip Start Times, 2014", 
      xlab = "Hour of the Day", col = "#CC66FF", xaxt = "n")
 axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
 
-#No, rush hours only for weekdays - makes sense 
+#No rush hours on weekends, only for weekdays 
 
+# Creating variable to list hour of start time for trip
 weekdays$hours <-  hour(weekdays$start_date)
 
+# Rush hours -> 06:00 - 09:00 & 15:00 - 18:00 
+# Using dplyr to filter trips in weekdays to just have trips during rush hours
 rush_hours <- weekdays %>%
-  filter(hours >= 6) %>%
-  filter(hours <= 18) %>%
-  filter(hours != 10) %>% 
+  filter(hours >= 6) %>% # Filtering pre-06:00 
+  filter(hours <= 18) %>% # Filtering post-18:00
+  filter(hours != 10) %>% # Filtering out 10:00 - 14:00 
   filter(hours != 11) %>% 
   filter(hours != 12) %>% 
   filter(hours != 13) %>% 
   filter(hours != 14) 
 
+# Using dplyr to use rush_hours dataset to count the start station names for each trip
+# and then arrange them by descending order, all stored as new table. 
 rush_start_table <- rush_hours %>%
-  count(rush_hours$start_station) 
+  count(rush_hours$start_station) %>%
+  arrange(desc(n))
 
 rush_start_table
 
+# Using dplyr to use rush_hours dataset to count the end station names for each trip
+# and then arrange them by descending order, all stored as new table.
+rush_end_table <- rush_hours %>%
+  count(rush_hours$end_station) %>%
+  arrange(desc(n))
+
+rush_end_table
 
 
+#` ---------------------------------------------------------------
 
 
 
