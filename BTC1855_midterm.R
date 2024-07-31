@@ -447,5 +447,24 @@ axis(side = 1, at = month_ticks, labels = month_lbls, las = 2, cex.axis = 0.7)
 
 #` ---------------------------------------------------------------
 
+# Joining station to trip4
+# need to rename station id to mathc so can join 
+station2 <- station2 %>%
+  rename(start_station_id = id)
+
+#need to factor to join (as factored in trip4)
+station2$start_station_id <- factor(station2$start_station_id)
+
+#Left join, trip <- station 
+trip5 <- left_join(trip4, station2, by = "start_station_id")
+
+weather2 <- weather2 %>%
+  rename(start_date = date)
+
+#Left join, trip5 <- weather by city + date 
+trip6 <- left_join(trip5, weather2, by = c("city", "start_date"))
+
+summary(trip6)
+glimpse(trip6)
 
 
