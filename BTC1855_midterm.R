@@ -1,8 +1,10 @@
 #' BTC1855 - Midterm, Zachery Chan
 #' R version: Version 2024.04.2+764 (2024.04.2+764)
+#' Code dated to Jul 31
 
 #` ---------------------------------------------------------------
 
+# Setting libraries 
 library(tidyr)
 library(ggplot2)
 library(dplyr)
@@ -11,6 +13,11 @@ library(funModeling)
 library(tidyverse) 
 library(Hmisc)
 library(lubridate)
+
+
+#` ---------------------------------------------------------------
+
+# Creating functions
 
 # Function for checking if any empty values (i.e. just "", and not as an NA)
 empty_string <- function(col) {
@@ -28,6 +35,10 @@ basic_eda <- function(data)
   describe(data)
 }
 
+
+#` ---------------------------------------------------------------
+
+# Reading raw data 
 # Setting file path to read files 
 file_path <- c("/Users/zachery/BTC1855-Midterm")
 
@@ -42,25 +53,34 @@ trip <- read.csv("/Users/zachery/BTC1855-Midterm/data/trip.csv", header= T, sep 
 weather <- read.csv("/Users/zachery/BTC1855-Midterm/data/weather.csv", header= T, sep = ",")
 # while default is comma de-limited and with header rows, good to add to remind the structure of raw data 
 
-# Exploring data 
+
+#` ---------------------------------------------------------------
+
+# Exploratory fucntions for datasets 
 glimpse(trip)
+summary(trip)
 
 glimpse(station)
+summary(station)
 
 glimpse(weather)
+summary(weather)
 
 basic_eda(trip)
+# Ran basic EDA for trip to see distribution of trips. Notably, massive 
+# positive skew for trip duration, majority is much closer to 0 (from histogram)
 
-basic_eda(weather)
-
-# Checking for missingness 
+# Checking for missingness in datasets 
 anyNA(trip)
 empty_string(trip)
+# Need to address empty strings in trip 
 
 anyNA(weather)
 empty_string(weather)
+# Need to address empty strings in trip 
+# NAs are mainly in events and max wind speed
 
-# Saving data in new frame to retain data integrity 
+# Saving data in new frames to retain data integrity 
 trip1 <- trip
 
 weather1 <- weather 
@@ -83,14 +103,17 @@ for (col_name in colnames(weather1)) {
 
 # Cleaning trip data 
 # Factoring station information 
-# Factoring station id (start & end) 
+
+# Factoring start station id
 trip1$end_station_id_fctr <- factor(trip1$end_station_id)
 
+# Factoring end station id
 trip1$start_station_id_fctr <- factor(trip1$start_station_id)
 
-# Factoring station name (start & end) 
+# Factoring start station name
 trip1$end_station_name_fctr <- factor(trip1$end_station_name)
 
+# Factoring end station name
 trip1$start_station_name_fctr <- factor(trip1$start_station_name)
 
 # Factoring subscription type 
@@ -129,42 +152,39 @@ weather1$city_fctr <- factor(weather1$city)
 # Factoring city
 station1$city_fctr <- factor(station1$city)
 
+# Factoring station id to match with trip dataset
+station1$id_fctr <- factor(station1$id)
+
 # Converting to POSix
 station1$installation_date_alt <- mdy(station1$installation_date)
 
-# Saving new data structures in new data frames
-trip2 <- data.frame(trip1$id, trip1$duration, trip1$duration_alt, trip1$start_date_alt, 
-                    trip1$start_station_name_fctr, trip1$start_station_id_fctr, 
-                    trip1$end_date_alt, trip1$end_station_name_fctr, 
-                    trip1$end_station_id_fctr, trip1$bike_id, 
-                    trip1$subscription_type_fctr, trip1$zip_code)
-colnames(trip2) <- c("id", "duration_seconds", "duration_POSix", "start_date",
-                     "start_station", "start_station_id", "end_date", 
-                     "end_station", "end_station_id", "bike_id", "subscription_type", 
-                     "zip_code")
+# Saving corrected structure for trip dataset in new dataframe
+trip2 <- trip1 %>% 
+  select(-start_date, - end_date, -start_station_name, -subscription_type, 
+         -end_station_name, -start_station_id, end_station_id)  %>%
+  select(id, duration_seconds = duration, duration_POSix = duration_alt, 
+         start_date = start_date_alt, start_station = start_station_name_fctr, 
+         start_station_id = start_station_id_fctr, end_date = end_date_alt, 
+         end_station_name = end_station_name_fctr, end_station_id = end_station_id_fctr, 
+         bike_id, subscription_type = subscription_type_fctr, zip_code)
 
-weather2 <- data.frame(weather1$date_alt, weather1$max_temperature_f, 
-                       weather1$mean_temperature_f, weather1$min_temperature_f, 
-                       weather1$max_visibility_miles, weather1$mean_visibility_miles, 
-                       weather1$min_visibility_miles, weather1$max_wind_Speed_mph, 
-                       weather1$mean_wind_speed_mph, weather1$max_gust_speed_mph, 
-                       weather1$precipitation_inches, weather1$cloud_cover, 
-                       weather1$events_fctr, weather1$zip_code,
-                       weather1$city_fctr)
+# Saving corrected structure for weather dataset in new dataframe
+weather2 <- weather1 %>% 
+  select(-date, -events, -city) %>% 
+  select(date = date_alt, max_temperature_f, mean_temperature_f, min_temperature_f,
+         max_visibility_miles, mean_visibility_miles, min_visibility_miles, 
+         max_wind_speed_mph = max_wind_Speed_mph, mean_wind_speed_mph, max_gust_speed_mph,
+         precipitation_inches, cloud_cover, , events = events_fctr, zip_code, city = city_fctr)
 
-colnames(weather2) <- c(
-  "date", "max_temperature_f", "mean_temperature_f", "min_temperature_f", 
-  "max_visibility_miles", "mean_visibility_miles", "min_visibility_miles", 
-  "max_wind_speed_mph", "mean_wind_speed_mph", "max_gust_speed_mph", 
-  "precipitation_inches", "cloud_cover", "events", "zip_code", "city")
+# Saving corrected structure for station dataset in new dataframe
+station2_test <- station1 %>% 
+  select(-installation_date, -id, -city) %>% 
+  select(id = id_fctr, name, , lat, long, dock_count, city = city_fctr, installation_date =installation_date_alt)
 
-station2 <- data.frame(station1$id, station1$name, station1$lat, station1$long, 
-                       station1$dock_count, station1$city_fctr, station1$installation_date_alt)
-
-colnames(station2) <- c("id", "name", "lat", "long", "dock_count", "city",
-                        "installation_date")
 
 #` ---------------------------------------------------------------
+
+# Identifying cancelled trips 
 
 # Identifying cancelled trips of trips with less than 180 seconds (3 minutes)
 # and trips that start and end at the same station, storing trip ids 
@@ -221,9 +241,9 @@ trip4 <- trip3 %>%
   filter(duration_seconds <= max_limit & duration_seconds >= 180)
 
 
-#` ---------------------------------------------------------------
+#` ----------------------------------------------------------------
 
-#Identifying Rush Hours 
+# Identifying Rush Hours 
 
 # Examining start date as you needa bike when you start a trip, not when you end a trip
 summary(trip3$start_date)
@@ -309,6 +329,8 @@ axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
 
 #` ---------------------------------------------------------------
 
+# Examining Rush Hours 
+
 # Do rush hours extend to the weekend? 
 # Mutating to get hour and month for Saturdays, sorting by month and filtering 
 saturdays <- weekends %>%
@@ -334,21 +356,16 @@ hist(sundays$hour, breaks = 24, main = "Sunday Trip Start Times, 2014",
      xlab = "Hour of the Day", col = "#CC66FF", xaxt = "n")
 axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
 
-#No rush hours on weekends, only for weekdays 
+# No rush hours on weekends, only for weekdays 
 
 # Creating variable to list hour of start time for trip
 weekdays$hours <-  hour(weekdays$start_date)
 
 # Rush hours -> 06:00 - 09:00 & 15:00 - 18:00 
 # Using dplyr to filter trips in weekdays to just have trips during rush hours
-rush_hours <- weekdays %>%
-  filter(hours >= 6) %>% # Filtering pre-06:00 
-  filter(hours <= 18) %>% # Filtering post-18:00
-  filter(hours != 10) %>% # Filtering out 10:00 - 14:00 
-  filter(hours != 11) %>% 
-  filter(hours != 12) %>% 
-  filter(hours != 13) %>% 
-  filter(hours != 14) 
+rush_hours2 <- weekdays %>%
+  filter(hours >= 6 & hours <= 18 & !hours %in% c(10, 11, 12, 13, 14)) 
+# Using logicals to filter out hours pre-6 and post-18 and NOT 10-14
 
 # Using dplyr to use rush_hours dataset to count the start station names for each trip
 # and then arrange them by descending order, all stored as new table. 
@@ -356,6 +373,7 @@ rush_start_table <- rush_hours %>%
   count(rush_hours$start_station) %>%
   arrange(desc(n))
 
+# Displaying table for start stations during rush hour 
 rush_start_table
 
 # Using dplyr to use rush_hours dataset to count the end station names for each trip
@@ -364,12 +382,14 @@ rush_end_table <- rush_hours %>%
   count(rush_hours$end_station) %>%
   arrange(desc(n))
 
+# Displaying table for end stations during rush hour 
 rush_end_table
 
 
 #` ---------------------------------------------------------------
 
-# Most used stations on weekends 
+# Weekend analysis 
+
 # Using weekends dataframe created previously 
 
 # Using dplyr to use weekends dataset to count the start station names for each trip
@@ -378,6 +398,7 @@ wknd_start_table <- weekends %>%
   count(weekends$start_station) %>%
   arrange(desc(n))
 
+# Displaying table for start stations during weekends
 wknd_start_table
 
 # Using dplyr to use weekends dataset to count the end station names for each trip
@@ -386,6 +407,7 @@ wknd_end_table <- weekends %>%
   count(weekends$end_station) %>%
   arrange(desc(n))
 
+# Displaying table for end stations during weekends
 wknd_end_table
 
 
@@ -403,7 +425,6 @@ month_total <- trip4 %>%
 # and that using the start and end dates (in POSix) only record the hour & minute 
 # of the trip. Using the difference between start and end date (i.e. with 
 # time_length() results in rounding up/down to the nearest minute)
-
 
 # Calculating seconds in Jan (1), Mar (3), May(5), Jul(7), Aug(8), Oct(10), Dec(12) of 2014
 sec_31 <- 31*24*60*60
@@ -443,15 +464,13 @@ plot(month_total$average, type = "l", xlab = "Month",
      xaxt = "n", ylim = c(5, 14))
 axis(side = 1, at = month_ticks, labels = month_lbls, las = 2, cex.axis = 0.7)
 
-
-
 # Creating vector for ticks in custom axis for plot of average utilisation per month
 month_ticks <-seq(from = 1, to = 12, by = 1)
 
 # Creating vector for labels in custom axis for plot of average utilisation per month
 month_lbls <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
-# Plotting line graph of average ustilisation per month
+# Plotting line graph of average utilisation per month
 plot(month_total$average, type = "l", xlab = "Month", 
      ylab = "Average Bike Utilisation", main = "Average Bike Utilisation per Month, 2014", 
      xaxt = "n", ylim = c(5, 14))
@@ -496,6 +515,9 @@ trip7 <- trip6 %>%
 # In precipitation, T = Trace amounts of rain. As smallest measurement of rain 
 # is 0.01, setting T = 0.0001 to represent trace amounts 
 trip7$precipitation_inches[trip7$precipitation_inches== "T"] <- 0.0001
+# NOTE: Did not convert precipitation into numeric earlier, as did not 
+# previously conduct analysis using the data and would rather keep "trace amounts" as T 
+# rather than defining trace amounts as an arbitrary value. 
 
 # Redefining events factor to keep track of events when converted to numeric 
 #' events <- 1 = Fog, 2 = Fog-Rain, 3 = Rain, 4 = Rain-Thunderstorm
@@ -518,9 +540,12 @@ for (i in seq_len(ncol(trip7))) {
 summary(trip7)
 
 # Considering the large number of NAs in max gust speed and very large number of 
-# NAs in events, better to use pairwise to maximise data for events
+# NAs in events, better to use pairwise to maximize data for events
 
 # Creating correlation table for weather variables
 weather_corr <- cor(trip7, use = "pairwise.complete.obs")
+
+
+
 
 
