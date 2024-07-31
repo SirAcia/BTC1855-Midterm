@@ -545,6 +545,8 @@ summary(trip7)
 # Creating correlation table for weather variables
 weather_corr <- cor(trip7, use = "pairwise.complete.obs")
 
+# Displaying weather correlation table for trip data
+weather_corr
 
 
 
