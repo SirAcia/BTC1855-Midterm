@@ -444,6 +444,5 @@ plot(month_total$average, type = "l", xlab = "Month",
 axis(side = 1, at = month_ticks, labels = month_lbls, las = 2, cex.axis = 0.7)
 
 
-#` ----------------------------------------------------------------
 
 
