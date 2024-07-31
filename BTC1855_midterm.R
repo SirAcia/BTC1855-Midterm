@@ -447,36 +447,62 @@ axis(side = 1, at = month_ticks, labels = month_lbls, las = 2, cex.axis = 0.7)
 
 #` ---------------------------------------------------------------
 
+# Creating Correlation Table For Weather 
+
 # Joining station to trip4
-# need to rename station id to mathc so can join 
+# Need to rename station id in trip 4 to match column name to join datasets 
 station2 <- station2 %>%
   rename(start_station_id = id)
 
-#need to factor to join (as factored in trip4)
+# Need to factor id in weather to join (as factored in trip4)
 station2$start_station_id <- factor(station2$start_station_id)
 
-#Left join, trip <- station 
+# Left join, trip <- station, matching rows on station id
 trip5 <- left_join(trip4, station2, by = "start_station_id")
 
-# Removing hours and minutes from start date so to can match to weather dates, 
-# storing as new variable
+# Removing hours and minutes from POSix in start date to match the dates 
+# in weather storing as new variable, using start date to match individual trips
+# with correct weather readings
 trip5$date <- date(trip5$start_date)
 
-#Left join, trip5 <- weather by city + date 
+# Left join, trip5 <- weather, matching rows on city + date 
 trip6 <- left_join(trip5, weather2, by = c("city", "date"))
 
+# Removing variables to better construct correlation table 
+# Removing variables created to match datasets, and non-weather related variables
+# like dock count 
 trip7 <- trip6 %>% 
-  select(-zip_code.x, -month, -name, -city) %>% 
-  rename(zip_code = zip_code.y)
+  select(-zip_code.x, -month, -name, -city, -installation_date, -bike_id, 
+         -lat, -long, -dock_count, -date, -duration_seconds, 
+         -start_station, -end_station, -duration_minutes, -zip_code.y) 
+# NOTE: Joining caused repeat of zipcode, one as number (char), 
+# one as character (int), removed both 
 
+# As correlation requires numbers, need to convert all variables to numeric 
+
+# In precipitation, T = Trace amounts of rain. As smallest measurement of rain 
+# is 0.01, setting T = 0.0001 to represent trace amounts 
+trip7$precipitation_inches[trip7$precipitation_inches== "T"] <- 0.0001
+
+# Redefining events factor to keep track of events when converted to numeric 
+#' events <- 1 = Fog, 2 = Fog-Rain, 3 = Rain, 4 = Rain-Thunderstorm
+trip7$events <- ifelse(trip7$events == "Fog", 1,
+       ifelse(trip7$events == "Fog-Rain", 2,
+              ifelse(trip7$events == "Rain", 3, 4)))
+
+# Redefining subscription factor to keep track when converted to numeric 
+#' subscription_type <- 1 = Subscriber, 0 = Customer
+trip7$subscription_type <- ifelse(trip7$subscription_type == "Subscriber", 1, 0) 
+
+# Using for loop to convert all variables to numeric
 for (i in seq_len(ncol(trip7))) {
   if (!is.numeric(trip7[[i]])) {
     trip7[[i]] <- as.numeric(trip7[[i]])
   }
-}
+} # NOTE: Dates become seconds since epoch (January 1, 1970 (UTC))
 
-trip7$start_station <- as.numeric(trip7$start_station)
+summary(trip7)
 
-trip7$duration_POSix <- as.numeric(trip7$duration_POSix)
+weather_corr <- cor(trip7, use = "complete.obs")
 
-cor(trip6)
+
