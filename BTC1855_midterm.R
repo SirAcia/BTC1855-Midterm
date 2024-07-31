@@ -431,5 +431,19 @@ for (i in seq_len(nrow(month_total))) {
 # Displaying month's usage and month's average utilisation
 month_total
 
+# Creating vector for ticks in custom axis for plot of average utilisation per month
+month_ticks <-seq(from = 1, to = 12, by = 1)
+
+# Creating vector for labels in custom axis for plot of average utilisation per month
+month_lbls <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+# Plotting line graph of average ustilisation per month
+plot(month_total$average, type = "l", xlab = "Month", 
+     ylab = "Average Bike Utilisation", main = "Average Bike Utilisation per Month, 2014", 
+     xaxt = "n", ylim = c(5, 14))
+axis(side = 1, at = month_ticks, labels = month_lbls, las = 2, cex.axis = 0.7)
+
+
+#` ---------------------------------------------------------------
 
 
