@@ -458,18 +458,25 @@ station2$start_station_id <- factor(station2$start_station_id)
 #Left join, trip <- station 
 trip5 <- left_join(trip4, station2, by = "start_station_id")
 
-weather2 <- weather2 %>%
-  rename(date = start_date)
-
+# Removing hours and minutes from start date so to can match to weather dates, 
+# storing as new variable
 trip5$date <- date(trip5$start_date)
 
 #Left join, trip5 <- weather by city + date 
 trip6 <- left_join(trip5, weather2, by = c("city", "date"))
 
-summary(trip6)
-glimpse(trip6)
+trip7 <- trip6 %>% 
+  select(-zip_code.x, -month, -name, -city) %>% 
+  rename(zip_code = zip_code.y)
 
-summary(weather2)
-glimpse(weather2)
+for (i in seq_len(ncol(trip7))) {
+  if (!is.numeric(trip7[[i]])) {
+    trip7[[i]] <- as.numeric(trip7[[i]])
+  }
+}
 
+trip7$start_station <- as.numeric(trip7$start_station)
 
+trip7$duration_POSix <- as.numeric(trip7$duration_POSix)
+
+cor(trip6)
