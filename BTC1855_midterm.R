@@ -501,8 +501,13 @@ for (i in seq_len(ncol(trip7))) {
   }
 } # NOTE: Dates become seconds since epoch (January 1, 1970 (UTC))
 
+# Examining the NAs in the data to determine if there are any concerns with correlation 
 summary(trip7)
 
-weather_corr <- cor(trip7, use = "complete.obs")
+# Considering the large number of NAs in max gust speed and very large number of 
+# NAs in events, better to use pairwise to maximise data for events
+
+# Creating correlation table for weather variables
+weather_corr <- cor(trip7, use = "pairwise.complete.obs")
 
 
