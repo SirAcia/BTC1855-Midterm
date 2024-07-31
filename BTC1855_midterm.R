@@ -459,12 +459,17 @@ station2$start_station_id <- factor(station2$start_station_id)
 trip5 <- left_join(trip4, station2, by = "start_station_id")
 
 weather2 <- weather2 %>%
-  rename(start_date = date)
+  rename(date = start_date)
+
+trip5$date <- date(trip5$start_date)
 
 #Left join, trip5 <- weather by city + date 
-trip6 <- left_join(trip5, weather2, by = c("city", "start_date"))
+trip6 <- left_join(trip5, weather2, by = c("city", "date"))
 
 summary(trip6)
 glimpse(trip6)
+
+summary(weather2)
+glimpse(weather2)
 
 
