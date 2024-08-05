@@ -306,7 +306,8 @@ ggplot(sundays, aes(x = hour)) +
   scale_x_continuous(breaks = graph_lbls, labels = graph_lbls) +
   labs(title = "Monday Trip Start Times, 2014", x = "Hour of the Day", y = "Frequency") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10))
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10),
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
 
 # Mutating to get hour and month for Tuesday, sorting by month and filtering 
 tuesdays <- weekdays %>%
@@ -321,7 +322,8 @@ ggplot(tuesdays, aes(x = hour)) +
   scale_x_continuous(breaks = graph_lbls, labels = graph_lbls) +
   labs(title = "Tuesday Trip Start Times, 2014", x = "Hour of the Day", y = "Frequency") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10))
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10), 
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
 
 # Mutating to get hour and month for Wednesday, sorting by month and filtering 
 wednesdays <- weekdays %>%
@@ -336,7 +338,8 @@ ggplot(wednesdays, aes(x = hour)) +
   scale_x_continuous(breaks = graph_lbls, labels = graph_lbls) +
   labs(title = "Wednesday Trip Start Times, 2014", x = "Hour of the Day", y = "Frequency") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10))
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10), 
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
 
 # Mutating to get hour and month for Thursday, sorting by month and filtering 
 thursdays <- weekdays %>%
@@ -351,7 +354,8 @@ ggplot(thursdays, aes(x = hour)) +
   scale_x_continuous(breaks = graph_lbls, labels = graph_lbls) +
   labs(title = "Thursday Trip Start Times, 2014", x = "Hour of the Day", y = "Frequency") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10))
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10), 
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
 
 # Mutating to get hour and month for Fridays, sorting by month and filtering 
 fridays <- weekdays %>%
@@ -366,7 +370,8 @@ ggplot(fridays, aes(x = hour)) +
   scale_x_continuous(breaks = graph_lbls, labels = graph_lbls) +
   labs(title = "Friday Trip Start Times, 2014", x = "Hour of the Day", y = "Frequency") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10))
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10), 
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
 
 
 # Examining the histograms, it seems that the rush hours for weekdays are 
@@ -391,7 +396,8 @@ ggplot(saturdays, aes(x = hour)) +
   scale_x_continuous(breaks = graph_lbls, labels = graph_lbls) +
   labs(title = "Saturday Trip Start Times, 2014", x = "Hour of the Day", y = "Frequency") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10))
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10), 
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
 
 # Mutating to get hour and month for Sundays, sorting by month and filtering 
 sundays <- weekends %>%
@@ -406,7 +412,8 @@ ggplot(sundays, aes(x = hour)) +
   scale_x_continuous(breaks = graph_lbls, labels = graph_lbls) +
   labs(title = "Sunday Trip Start Times, 2014", x = "Hour of the Day", y = "Frequency") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10))
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10),
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
 
 # No rush hours on weekends, only for weekdays 
 
@@ -492,14 +499,17 @@ month_total
 month_lbls <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
 # Creating vector for ticks in custom axis for plot of average utilisation per month
-month_ticks <-seq(from = 1, to = 12, by = 1)
+month_ticks <- seq(from = 1, to = 12, by = 1)
 
 # Plotting line graph of average utilisation per month
 ggplot(month_total, aes(x = month, y = average)) +
   geom_line(color = "blue") +  
   geom_point(color = "red") +  
+  scale_x_datetime(date_labels = "%b %Y", date_breaks = "1 month") +
   labs(title = "Average Bike Utilisation per Month, 2014", x = "Month", y = "Average Bike Utilisation Rate (%)") +
-  theme_minimal()  
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), 
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
 
 #` ---------------------------------------------------------------
 
@@ -588,6 +598,7 @@ weather_corr
 corrplot(weather_corr, method = "square", 
          type = "upper", tl.col = "black", tl.srt = 45, tl.cex = 0.8)
 title(main = "Trip Correlation With Weather", line = 2.5)
+
 
 
 
