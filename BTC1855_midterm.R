@@ -619,8 +619,9 @@ summary(trip8)
 weather_corr <- cor(trip8, use = "pairwise.complete.obs")
 
 # Setting names for correlation matrix (better readibiloty and graphing) 
-corr_names <- c("Duration", "Start Date", "End Date", "Max Temp (F)", "Mean Temp (F)", "Min Temp (F)", 
-               "Max Vis (Miles)", "Mean Vis (Miles)", "Max Wind Speed (mph)", "Mean Wind Speed (mph)", 
+corr_names <- c("Duration", "Start Date", "End Date", "Max Temp F", "Mean Temp F", "Min Temp F", 
+               "Max Visibilty (miles)", "Mean Visibility (miles)", "Min Visibility (miles)", 
+               "Max Wind Speed (mph)", "Mean Wind Speed (mph)", "Max Gust Speed (mph)",
                "Precipitation (Inches)", "Cloud Cover", "Weather Events")
 
 # Assign custom labels to the correlation matrix
@@ -631,8 +632,7 @@ rownames(weather_corr) <- corr_names
 weather_corr
 
 # Graphing correlation for report
-corrplot(weather_corr, method = "square", 
-         type = "upper", tl.col = "black", tl.srt = 45, tl.cex = 0.6)
+corrplot(weather_corr, method = "square", tl.col = "black", tl.srt = 45, tl.cex = 0.6)
 title(main = "Trip Correlation With Weather", line = 1)
 
 
