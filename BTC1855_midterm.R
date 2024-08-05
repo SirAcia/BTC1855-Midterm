@@ -301,9 +301,12 @@ mondays <- weekdays %>%
 graph_lbls <- seq(from = 0, to = 23, by = 1)
 
 # Plotting histogram for start times on Mondays of every month 
-hist(mondays$hour, breaks = 24, main = "Monday Trip Start Times, 2014", 
-     xlab = "Hour of the Day", col = "lightgreen", xaxt = "n")
-axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
+ggplot(sundays, aes(x = hour)) +
+  geom_histogram(binwidth = 1, fill = "lightgreen", color = "black", boundary = 0.5) +
+  scale_x_continuous(breaks = graph_lbls, labels = graph_lbls) +
+  labs(title = "Monday Trip Start Times, 2014", x = "Hour of the Day", y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10))
 
 # Mutating to get hour and month for Tuesday, sorting by month and filtering 
 tuesdays <- weekdays %>%
@@ -313,9 +316,12 @@ tuesdays <- weekdays %>%
   group_by(month) 
 
 # Plotting histogram for start times on Tuesdays of every month 
-hist(tuesdays$hour, breaks = 24, main = "Tuesday Trip Start Times, 2014", 
-     xlab = "Hour of the Day", col = "lightblue", xaxt = "n")
-axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
+ggplot(tuesdays, aes(x = hour)) +
+  geom_histogram(binwidth = 1, fill = "#3399FF", color = "black", boundary = 0.5) +
+  scale_x_continuous(breaks = graph_lbls, labels = graph_lbls) +
+  labs(title = "Tuesday Trip Start Times, 2014", x = "Hour of the Day", y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10))
 
 # Mutating to get hour and month for Wednesday, sorting by month and filtering 
 wednesdays <- weekdays %>%
@@ -325,9 +331,12 @@ wednesdays <- weekdays %>%
   group_by(month) 
 
 # Plotting histogram for start times on Wednesday of every month 
-hist(tuesdays$hour, breaks = 24, main = "Wednesday Trip Start Times, 2014", 
-     xlab = "Hour of the Day", col = "#FF66CC", xaxt = "n")
-axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
+ggplot(wednesdays, aes(x = hour)) +
+  geom_histogram(binwidth = 1, fill = "#FF0000", color = "black", boundary = 0.5) +
+  scale_x_continuous(breaks = graph_lbls, labels = graph_lbls) +
+  labs(title = "Wednesday Trip Start Times, 2014", x = "Hour of the Day", y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10))
 
 # Mutating to get hour and month for Thursday, sorting by month and filtering 
 thursdays <- weekdays %>%
@@ -337,9 +346,12 @@ thursdays <- weekdays %>%
   group_by(month) 
 
 # Plotting histogram for start times on Thursdays of every month 
-hist(thursdays$hour, breaks = 24, main = "Thursday Trip Start Times, 2014", 
-     xlab = "Hour of the Day", col = "#66CC66", xaxt = "n")
-axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
+ggplot(thursdays, aes(x = hour)) +
+  geom_histogram(binwidth = 1, fill = "#FF3399CC", color = "black", boundary = 0.5) +
+  scale_x_continuous(breaks = graph_lbls, labels = graph_lbls) +
+  labs(title = "Thursday Trip Start Times, 2014", x = "Hour of the Day", y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10))
 
 # Mutating to get hour and month for Fridays, sorting by month and filtering 
 fridays <- weekdays %>%
@@ -349,9 +361,13 @@ fridays <- weekdays %>%
   group_by(month) 
 
 # Plotting histogram for start times on Fridays of every month 
-hist(fridays$hour, breaks = 24, main = "Friday Trip Start Times, 2014", 
-     xlab = "Hour of the Day", col = "#CC66FF", xaxt = "n")
-axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
+ggplot(fridays, aes(x = hour)) +
+  geom_histogram(binwidth = 1, fill = "#009933", color = "black", boundary = 0.5) +
+  scale_x_continuous(breaks = graph_lbls, labels = graph_lbls) +
+  labs(title = "Friday Trip Start Times, 2014", x = "Hour of the Day", y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10))
+
 
 # Examining the histograms, it seems that the rush hours for weekdays are 
 # 06:00 - 09:00 and 15:00 - 18:00. 
@@ -385,9 +401,12 @@ sundays <- weekends %>%
   group_by(month) 
 
 # Plotting histogram for start times on Sundays of every month 
-hist(sundays$hour, breaks = 24, main = "Sunday Trip Start Times, 2014", 
-     xlab = "Hour of the Day", col = "#CC66FF", xaxt = "n")
-axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
+ggplot(sundays, aes(x = hour)) +
+  geom_histogram(binwidth = 1, fill = "#3399CC", color = "black", boundary = 0.5) +
+  scale_x_continuous(breaks = graph_lbls, labels = graph_lbls) +
+  labs(title = "Sunday Trip Start Times, 2014", x = "Hour of the Day", y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10))
 
 # No rush hours on weekends, only for weekdays 
 
