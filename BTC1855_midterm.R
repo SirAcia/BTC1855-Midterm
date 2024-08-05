@@ -59,16 +59,13 @@ weather <- read.csv("/Users/zachery/BTC1855-Midterm/data/weather.csv", header= T
 # Exploratory fucntions for datasets 
 glimpse(trip)
 summary(trip)
+# Notably, massive positive skew for trip duration, majority is much closer to 0 
 
 glimpse(station)
 summary(station)
 
 glimpse(weather)
 summary(weather)
-
-basic_eda(trip)
-# Ran basic EDA for trip to see distribution of trips. Notably, massive 
-# positive skew for trip duration, majority is much closer to 0 (from histogram)
 
 # Checking for missingness in datasets 
 anyNA(trip)
@@ -181,7 +178,7 @@ station2_test <- station1 %>%
   select(-installation_date, -id, -city) %>% 
   select(id = id_fctr, name, , lat, long, dock_count, city = city_fctr, installation_date =installation_date_alt)
 
-
+basic_eda(trip2)
 #` ---------------------------------------------------------------
 
 # Identifying cancelled trips 
