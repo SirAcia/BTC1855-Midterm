@@ -13,6 +13,7 @@ library(funModeling)
 library(tidyverse) 
 library(Hmisc)
 library(lubridate)
+library(corrplot)
 
 
 #` ---------------------------------------------------------------
@@ -162,7 +163,7 @@ trip2 <- trip1 %>%
   select(id, duration_seconds = duration, duration_POSix = duration_alt, 
          start_date = start_date_alt, start_station = start_station_name_fctr, 
          start_station_id = start_station_id_fctr, end_date = end_date_alt, 
-         end_station_name = end_station_name_fctr, end_station_id = end_station_id_fctr, 
+         end_station = end_station_name_fctr, end_station_id = end_station_id_fctr, 
          bike_id, subscription_type = subscription_type_fctr, zip_code)
 
 # Saving corrected structure for weather dataset in new dataframe
@@ -174,7 +175,7 @@ weather2 <- weather1 %>%
          precipitation_inches, cloud_cover, , events = events_fctr, zip_code, city = city_fctr)
 
 # Saving corrected structure for station dataset in new dataframe
-station2_test <- station1 %>% 
+station2 <- station1 %>% 
   select(-installation_date, -id, -city) %>% 
   select(id = id_fctr, name, , lat, long, dock_count, city = city_fctr, installation_date =installation_date_alt)
 
@@ -369,9 +370,12 @@ saturdays <- weekends %>%
   group_by(month) 
 
 # Plotting histogram for start times on Saturdays of every month 
-hist(saturdays$hour, breaks = 24, main = "Saturday Trip Start Times, 2014", 
-     xlab = "Hour of the Day", col = "#CC66FF", xaxt = "n")
-axis(side = 1, at = graph_lbls, labels = graph_lbls, las = 2, cex.axis = 0.7)
+ggplot(saturdays, aes(x = hour)) +
+  geom_histogram(binwidth = 1, fill = "#CC66FF", color = "black", boundary = 0.5) +
+  scale_x_continuous(breaks = graph_lbls, labels = graph_lbls) +
+  labs(title = "Saturday Trip Start Times, 2014", x = "Hour of the Day", y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10))
 
 # Mutating to get hour and month for Sundays, sorting by month and filtering 
 sundays <- weekends %>%
@@ -392,7 +396,7 @@ weekdays$hours <-  hour(weekdays$start_date)
 
 # Rush hours -> 06:00 - 09:00 & 15:00 - 18:00 
 # Using dplyr to filter trips in weekdays to just have trips during rush hours
-rush_hours2 <- weekdays %>%
+rush_hours <- weekdays %>%
   filter(hours >= 6 & hours <= 18 & !hours %in% c(10, 11, 12, 13, 14)) 
 # Using logicals to filter out hours pre-6 and post-18 and NOT 10-14
 
@@ -505,7 +509,7 @@ trip6 <- left_join(trip5, weather2, by = c("city", "date"))
 # Removing variables created to match datasets, and non-weather related variables
 # like dock count 
 trip7 <- trip6 %>% 
-  select(-zip_code.x, -month, -name, -city, -installation_date, -bike_id, 
+  select(-zip_code.x, -name, -city, -installation_date, -bike_id, 
          -lat, -long, -dock_count, -date, -duration_seconds, 
          -start_station, -end_station, -duration_minutes, -zip_code.y) 
 # NOTE: Joining caused repeat of zipcode, one as number (char), 
@@ -537,17 +541,35 @@ for (i in seq_len(ncol(trip7))) {
   }
 } # NOTE: Dates become seconds since epoch (January 1, 1970 (UTC))
 
-# Examining the NAs in the data to determine if there are any concerns with correlation 
-summary(trip7)
+# Removing other variables in trip dataset (not of interest with correlation to weather)
+trip8 <- trip7 %>% 
+  select(-id, -start_station_id, -end_station_id, -subscription_type, end_date)
 
+# Examining the NAs in the data to determine if there are any concerns with correlation 
+summary(trip8)
 # Considering the large number of NAs in max gust speed and very large number of 
 # NAs in events, better to use pairwise to maximize data for events
 
 # Creating correlation table for weather variables
-weather_corr <- cor(trip7, use = "pairwise.complete.obs")
+weather_corr <- cor(trip8, use = "pairwise.complete.obs")
+
+# Setting names for correlation matrix (better readibiloty and graphing) 
+corr_names <- c("Duration", "Start Date", "End Date", "Max Temp (F)", "Mean Temp (F)", "Min Temp (F)", 
+               "Max Vis (Miles)", "Mean Vis (Miles)", "Max Wind Speed (mph)", "Mean Wind Speed (mph)", 
+               "Precipitation (Inches)", "Cloud Cover", "Weather Events")
+
+# Assign custom labels to the correlation matrix
+colnames(weather_corr) <- corr_names
+rownames(weather_corr) <- corr_names
 
 # Displaying weather correlation table for trip data
 weather_corr
+
+# Graphing correlation for report
+corrplot(weather_corr, method = "square", 
+         type = "upper", tl.col = "black", tl.srt = 45, tl.cex = 0.8)
+title(main = "Trip Correlation With Weather", line = 2.5)
+
 
 
 
