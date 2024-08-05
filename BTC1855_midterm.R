@@ -178,7 +178,7 @@ station2_test <- station1 %>%
   select(-installation_date, -id, -city) %>% 
   select(id = id_fctr, name, , lat, long, dock_count, city = city_fctr, installation_date =installation_date_alt)
 
-basic_eda(trip2)
+
 #` ---------------------------------------------------------------
 
 # Identifying cancelled trips 
@@ -208,35 +208,67 @@ summary(trip3)
 # the only major concern for outliers is the duration variable (as it will correlate
 # with other outliers in start/end date, etc.)
 
-# From EDA earlier (histogram of duration), the mast majority of trips are 
-# of short duration, with extreme values creating large positive skew 
-sort(trip3$duration_minutes, decreasing = T)
+# The vast majority of trips are of short duration, with extreme values creating large positive skew 
+sort((trip3$duration_minutes/(60)), decreasing = T)
+
+describe(trip3)
+quantile(trip3$duration_seconds, c(0.25, 0.75))
 
 # Using standard deviation to determine upper limit
 std_dev <- sd(trip3$duration_seconds, na.rm = TRUE)
 
 duration_mean <- mean(trip3$duration_seconds, na.rm = TRUE)
 
-# Defining upper limit for duration, using 3.5*standard deviation as upper limit
-# to account for huge positive skew and 3.5 times equates to approx. 75 hours.
-# Just over 2 days is a reasonable upper limit for a BIKE rental 
-max_limit <- duration_mean + 3.5*std_dev
+# Defining upper limit for duration, using 3*standard deviation as upper limit
+# to account for huge positive skew and 3 times equates to approx. 26 hours.
+# Just over 1 day is a reasonable upper limit for a BIKE rental 
+max_limit <- duration_mean + 3*std_dev
 
-# Saving outlier ids
-otler <- trip3 %>% 
-  filter(!(duration_seconds <= max_limit & duration_seconds >= 180))
-
-outliers <- otler$id 
-
-sort(trip3$duration_minutes, decreasing = F)
+sort(trip3$duration_seconds, decreasing = F)
 # As using st dev is not feasible for lower limit (as it becomes negative), 
-# using lower limit of 180 seconds (set by personal choice, assuming 180 seconds
+
+lower_limit <- (0.5)*quantile(trip3$duration_seconds, 0.25)
+# Basing lower limit on the IQR range, using 2 X 25% quartile to set lower limit as 
+# a lot of data 
+# This sets lower limit 180 seconds (set by personal choice, assuming 180 seconds
 # is an adequate amount of time for a "test ride" or really fast ride around a station
 
 # Removing outliers and saving as new dataset
 trip4 <- trip3 %>% 
-  filter(duration_seconds <= max_limit & duration_seconds >= 180)
+  filter(duration_seconds <= max_limit & duration_seconds >= lower_limit)
 
+# Saving outlier ids
+outlier_frame <- trip3 %>% 
+  filter(!(duration_seconds <= max_limit & duration_seconds >= lower_limit))
+
+outliers <- outlier_frame$id 
+
+log_duration <- log10(trip4$duration_minutes)
+
+dur_lbls <- c("<3 min", "10 min", " 30 min", " 1 hr",
+               " 3 hr", "6 hr", "12 hr", "28 hr")
+
+dur_ticks = c(0.5, 10, 30, 60, 180, 360, 720, 1680)
+
+dur_ticks_log <- log10(dur_ticks)
+
+suppressWarnings(hist(trip4$duration_minutes, main= "Trip Duration in Minutes",
+                      xlab = "Log(duration) (mins)", ylab = "Frequency of Trips", 
+                      breaks = dur_ticks, freq = T, xaxt = "n",))
+axis(side = 1, at = dur_ticks, labels = dur_lbls, las = 2, cex.axis = 0.7, cex.lab = 0.5)
+
+
+# Conducting EDA (post-processing for report) 
+basic_eda(trip4)
+
+dur_lbls <- c("<3 min", "10 min", "30 min", "1 hr", "3 hr", "6 hr", "12 hr", "28 hr")
+dur_ticks <- c(0.5, 10, 30, 60, 180, 360, 720, 1680)
+dur_ticks_log <- log10(dur_ticks)
+
+ggplot(trip4, aes(x = log_duration)) +
+  geom_histogram(bins = length(dur_ticks) - 1, fill = "lightblue", color = "black") +
+  scale_x_continuous(labels = dur_lbls, breaks = dur_ticks_log) +
+  labs(title = "Trip Duration in Minutes", x = "Duration (mins)", y = "Frequency of Trips") 
 
 #` ----------------------------------------------------------------
 
@@ -412,65 +444,37 @@ wknd_end_table
 
 # Finding average utilisation of bikes per month
 
-# Similar to previous task, cretaing month variable for when trip was taken 
-# grouping by month and summing the total duration of trips per month
+# Similar to previous task, creating month variable and variable for days in month
 month_total <- trip4 %>%
-  mutate(month = month(start_date)) %>%
-  group_by(month) %>%
-  summarise(month_duration = sum(duration_seconds, na.rm = T))
+  mutate(month = floor_date(start_date, "month")) %>% # Creating new variable for month, dropping days + hours/min
+  mutate(month_days = days_in_month(start_date)) %>% # Creating new variable for days in month from start date (in case of leap year)
+  group_by(month, month_days) %>%
+  summarise(month_duration = sum(duration_seconds, na.rm = T), .groups = 'drop') #Using groups = 'drops' to ensure days in momnth appears in table
 # NOTE: using the raw duration in seconds here as sum cannot be used on POSix
 # and that using the start and end dates (in POSix) only record the hour & minute 
 # of the trip. Using the difference between start and end date (i.e. with 
 # time_length() results in rounding up/down to the nearest minute)
 
-# Calculating seconds in Jan (1), Mar (3), May(5), Jul(7), Aug(8), Oct(10), Dec(12) of 2014
-sec_31 <- 31*24*60*60
+# Total time in month is total time available for bikes, so need to find number of bikes
+bikes <- n_distinct(trip4$bike_id)
 
-# Calculating seconds in Feb (2) of 2014
-feb_sec <- 28*24*60*60
-
-# Calculating seconds in Apr (4), Jun(6), Sep(9), Nov(11) of 2014
-sec_30 <-31*24*60*60
-
-# Initializing empty column to store monthly average in table 
-month_total$average <- NA
-
-# Using for loop along the length of monthy_total, calculating average use depending on month
-for (i in seq_len(nrow(month_total))) {
-  if (month_total$month[i] %in% c(1, 3, 5, 7, 8, 10, 12)){ # If month is Jan, Mar, an (1), Mar (3), May(5), Jul(7), Aug(8), Oct(10), Dec(12) 
-    month_total$average[i] <- month_total$month_duration[i]/sec_31
-  } else if (month_total$month[i] == 2){ # If month is Feb
-    month_total$average[i] <- month_total$month_duration[i]/feb_sec
-  } else if (month_total$month[i] %in% c(4, 6, 9, 11)){ # If month is Apr (4), Jun(6), Sep(9), Nov(11)
-    month_total$average[i] <- month_total$month_duration[i]/sec_30
-  }
-}
+# Calculating average utilisation rate and storing as a variable 
+month_total$average <- month_total$month_duration/(bikes*60*60*24*month_total$month_days)*100
+# For calculation, calculating number of seconds in month * number of bikes 
 
 # Displaying month's usage and month's average utilisation
 month_total
 
-# Creating vector for ticks in custom axis for plot of average utilisation per month
-month_ticks <-seq(from = 1, to = 12, by = 1)
-
 # Creating vector for labels in custom axis for plot of average utilisation per month
 month_lbls <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+# Creating vector for ticks in custom axis for plot of average utilisation per month
+month_ticks <-seq(from = 1, to = 12, by = 1)
 
 # Plotting line graph of average ustilisation per month
 plot(month_total$average, type = "l", xlab = "Month", 
-     ylab = "Average Bike Utilisation", main = "Average Bike Utilisation per Month, 2014", 
-     xaxt = "n", ylim = c(5, 14))
-axis(side = 1, at = month_ticks, labels = month_lbls, las = 2, cex.axis = 0.7)
-
-# Creating vector for ticks in custom axis for plot of average utilisation per month
-month_ticks <-seq(from = 1, to = 12, by = 1)
-
-# Creating vector for labels in custom axis for plot of average utilisation per month
-month_lbls <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-
-# Plotting line graph of average utilisation per month
-plot(month_total$average, type = "l", xlab = "Month", 
-     ylab = "Average Bike Utilisation", main = "Average Bike Utilisation per Month, 2014", 
-     xaxt = "n", ylim = c(5, 14))
+     ylab = "Average Bike Utilisation Rate (%)", main = "Average Bike Utilisation per Month, 2014", 
+     xaxt = "n", ylim = c(1, 2))
 axis(side = 1, at = month_ticks, labels = month_lbls, las = 2, cex.axis = 0.7)
 
 
