@@ -238,38 +238,40 @@ lower_limit <- (0.5)*quantile(trip3$duration_seconds, 0.25)
 trip4 <- trip3 %>% 
   filter(duration_seconds <= max_limit & duration_seconds >= lower_limit)
 
-# Saving outlier ids
-outlier_frame <- trip3 %>% 
-  filter(!(duration_seconds <= max_limit & duration_seconds >= lower_limit))
+# Saving data frame of just outliers 
+outliers <- trip3 %>% 
+  filter(!(duration_seconds <= max_limit & duration_seconds >= lower_limit)) %>%
+  select(-wkday_start, -duration_minutes)
+# Removing wkday start and duration minutes as those are calculated variables for my analysis, 
+# and may be more confusing in later analysis as they do not originate with the raw dataset
 
-outliers <- outlier_frame$id 
 
-log_duration <- log10(trip4$duration_minutes)
+# Saving outliers as .csv
+write.csv(outliers, file = "BTC_1855_Midterm_Outliers.csv", row.names = FALSE)
 
-dur_lbls <- c("<3 min", "10 min", " 30 min", " 1 hr",
-               " 3 hr", "6 hr", "12 hr", "28 hr")
+# Creating new dataframe for trip duration histogram 
+duration <- trip4
 
-dur_ticks = c(0.5, 10, 30, 60, 180, 360, 720, 1680)
+# using log_10 to more easily visualize the data 
+duration$log_duration <- log10(duration$duration_minutes)
 
+# Setting histogram labels, and tick marks
+dur_lbls <- c("~0", "1", "2", "5", "10", "30", "1hr", "3hr", "6hr", "12hr", "24+hr")
+dur_ticks <- c(0.5, 1, 2, 5, 10, 30, 60, 180, 360, 720, 1680)  # in minutes
 dur_ticks_log <- log10(dur_ticks)
 
-suppressWarnings(hist(trip4$duration_minutes, main= "Trip Duration in Minutes",
-                      xlab = "Log(duration) (mins)", ylab = "Frequency of Trips", 
-                      breaks = dur_ticks, freq = T, xaxt = "n",))
-axis(side = 1, at = dur_ticks, labels = dur_lbls, las = 2, cex.axis = 0.7, cex.lab = 0.5)
 
+# Plot histogram with custom log scale labels
+ggplot(duration, aes(x = log_duration)) +
+  geom_histogram(binwidth = 0.08, fill = "lightblue", color = "black") +
+  labs(title = "Trip Duration in Minutes", x = "Duration (mins)", y = "Frequency of Trips") + 
+  scale_x_continuous(breaks = dur_ticks_log, labels = dur_lbls) + 
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10),
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
 
 # Conducting EDA (post-processing for report) 
 basic_eda(trip4)
 
-dur_lbls <- c("<3 min", "10 min", "30 min", "1 hr", "3 hr", "6 hr", "12 hr", "28 hr")
-dur_ticks <- c(0.5, 10, 30, 60, 180, 360, 720, 1680)
-dur_ticks_log <- log10(dur_ticks)
-
-ggplot(trip4, aes(x = log_duration)) +
-  geom_histogram(bins = length(dur_ticks) - 1, fill = "lightblue", color = "black") +
-  scale_x_continuous(labels = dur_lbls, breaks = dur_ticks_log) +
-  labs(title = "Trip Duration in Minutes", x = "Duration (mins)", y = "Frequency of Trips") 
 
 #` ----------------------------------------------------------------
 
@@ -596,8 +598,8 @@ weather_corr
 
 # Graphing correlation for report
 corrplot(weather_corr, method = "square", 
-         type = "upper", tl.col = "black", tl.srt = 45, tl.cex = 0.8)
-title(main = "Trip Correlation With Weather", line = 2.5)
+         type = "upper", tl.col = "black", tl.srt = 45, tl.cex = 0.6)
+title(main = "Trip Correlation With Weather", line = 1)
 
 
 
