@@ -154,6 +154,9 @@ station1$city_fctr <- factor(station1$city)
 # Factoring station id to match with trip dataset
 station1$id_fctr <- factor(station1$id)
 
+# Factoring station name to match with trip dataset
+station1$name_fctr <- factor(station1$name)
+
 # Converting to POSix
 station1$installation_date_alt <- mdy(station1$installation_date)
 
@@ -174,36 +177,36 @@ weather2 <- weather1 %>%
          max_visibility_miles, mean_visibility_miles, min_visibility_miles, 
          max_wind_speed_mph = max_wind_Speed_mph, mean_wind_speed_mph, max_gust_speed_mph,
          precipitation_inches, cloud_cover, , events = events_fctr, zip_code, city = city_fctr)
+# Fixing typo in "max wind speed" column 
 
 # Saving corrected structure for station dataset in new dataframe
 station2 <- station1 %>% 
   select(-installation_date, -id, -city) %>% 
-  select(id = id_fctr, name, , lat, long, dock_count, city = city_fctr, installation_date =installation_date_alt)
+  select(id = id_fctr, name = name_fctr, , lat, long, dock_count, city = city_fctr, installation_date =installation_date_alt)
 
+#Creating weather dataframe with different labels for EDA graphs 
+weather_graph <-  weather2 %>% 
+  select("Date" = date,  "Max Temp (F)" = max_temperature_f, "Mean Temp (F)" = mean_temperature_f, 
+         "Min Temp (F)" = min_temperature_f, "Max Visibility (miles)" = max_visibility_miles, 
+         "Mean Visibility (miles)" = mean_visibility_miles, "Min Visibility (miles)" = min_visibility_miles, 
+         "Max Wind Speed (mph)" = max_wind_speed_mph, "Mean Wind Speed (mph)" = mean_wind_speed_mph, 
+         "Max Gust Speed (mph)" = max_gust_speed_mph, "Precipitation (inches)" = precipitation_inches, 
+         "Cloud Cover" = cloud_cover, "Weather Events" = events, "Zip Code" = zip_code, "City" = city)
 
 # Basic EDA for weather data 
-basic_eda(weather2)
+basic_eda(weather_graph)
 
-basic_eda <- function(data)
-{
-  glimpse(data)
-  print(status(data))
-  freq(data) 
-  print(profiling_num(data))
-  plot_num(data)
-  describe(data)
-}
 #` ---------------------------------------------------------------
 
 # Identifying cancelled trips 
 
 # Identifying cancelled trips of trips with less than 180 seconds (3 minutes)
 # and trips that start and end at the same station, storing trip ids 
-cancelled <- trip2 %>% 
+cancelled_trips <- trip2 %>% 
   filter(duration_seconds < 180 & start_station_id == end_station_id)
 
 # Saving cancelled trips as .csv
-write.csv(cancelled, file = "BTC_1855_Midterm_Cancelled_Trips.csv", row.names = FALSE)
+write.csv(cancelled_trips, file = "BTC_1855_Midterm_Cancelled_Trips.csv", row.names = FALSE)
 
 
 # Removing cancelled trips from trip dataset
@@ -225,6 +228,8 @@ summary(trip3)
 
 # The vast majority of trips are of short duration, with extreme values creating large positive skew 
 sort((trip3$duration_minutes/(60)), decreasing = T)
+# Sorting duration IN HOURS by decreasing order
+# Seems to be obvious outliers of trips with lasting 4000+ hours, 2000+ hours,etc. 
 
 describe(trip3)
 quantile(trip3$duration_seconds, c(0.25, 0.75))
@@ -239,13 +244,17 @@ duration_mean <- mean(trip3$duration_seconds, na.rm = TRUE)
 # Just over 1 day is a reasonable upper limit for a BIKE rental 
 max_limit <- duration_mean + 3*std_dev
 
+duration_mean - std_dev
+# Using st dev is not feasible for lower limit (as it becomes negative), 
+
 sort(trip3$duration_seconds, decreasing = F)
-# As using st dev is not feasible for lower limit (as it becomes negative), 
+# Sorting duration IN SECONDS by increasing order
+# If not a cancelled trip, trips of approx. 1 minute between stations seems extreme
 
 lower_limit <- (0.5)*quantile(trip3$duration_seconds, 0.25)
 # Basing lower limit on the IQR range, using 2 X 25% quartile to set lower limit as 
 # a lot of data 
-# This sets lower limit 180 seconds (set by personal choice, assuming 180 seconds
+# This sets lower limit 180 seconds (set by personal choice), assuming 180 seconds
 # is an adequate amount of time for a "test ride" or really fast ride around a station
 
 # Removing outliers and saving as new dataset
@@ -277,7 +286,7 @@ dur_ticks_log <- log10(dur_ticks)
 # Plot histogram with custom log scale labels
 ggplot(duration, aes(x = log_duration)) +
   geom_histogram(binwidth = 0.08, fill = "lightblue", color = "black") +
-  labs(title = "Trip Duration in Minutes", x = "Duration (mins)", y = "Frequency of Trips") + 
+  labs(title = "Trip Duration in Minutes", x = "Log of Duration (mins)", y = "Frequency of Trips") + 
   scale_x_continuous(breaks = dur_ticks_log, labels = dur_lbls) + 
   theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1, size = 10),
         plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
@@ -470,8 +479,25 @@ rush_start_table <- rush_hours %>%
   count(rush_hours$start_station) %>%
   arrange(desc(n))
 
+# Setting column names for better readability 
+colnames(rush_start_table) <- c("start_station", "n")
+
 # Displaying table for start stations during rush hour 
 rush_start_table
+
+# Graph of station use during rush hour 
+ggplot(rush_start_table, aes(x = reorder(start_station, n), y = n, fill = start_station)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +  # Flipping axis 
+  xlab("Start Station") +
+  ylab("Count") +
+  ggtitle("Start Stations on Weekends") +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 7),
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) + 
+  guides(fill = "none")
+
 
 # Using dplyr to use rush_hours dataset to count the end station names for each trip
 # and then arrange them by descending order, all stored as new table.
@@ -506,8 +532,24 @@ wknd_start_table <- weekends %>%
   count(weekends$start_station) %>%
   arrange(desc(n))
 
+# Setting column names for better readability 
+colnames(wknd_start_table) <- c("start_station", "n")
+
 # Displaying table for start stations during weekends
 wknd_start_table
+
+# Creating graph for report 
+ggplot(wknd_start_table, aes(x = reorder(start_station, n), y = n, fill = start_station)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +  # Flipping axis 
+  xlab("Start Station") +
+  ylab("Count") +
+  ggtitle("Start Stations on Weekends") +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 7),
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) + 
+  guides(fill = "none")
 
 # Using dplyr to use weekends dataset to count the end station names for each trip
 # and then arrange them by descending order, all stored as new table. 
@@ -515,9 +557,24 @@ wknd_end_table <- weekends %>%
   count(weekends$end_station) %>%
   arrange(desc(n))
 
+# Setting column names for better readability 
+colnames(wknd_end_table) <- c("end_station", "n")
+
 # Displaying table for end stations during weekends
 wknd_end_table
 
+# Creating graph for report 
+ggplot(wknd_end_table, aes(x = reorder(end_station, n), y = n, fill = end_station)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +  # Flipping axis 
+  xlab("End Station") +
+  ylab("Count") +
+  ggtitle("End Stations on Weekends") +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 7),
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) + 
+  guides(fill = "none")
 
 #` ---------------------------------------------------------------
 
