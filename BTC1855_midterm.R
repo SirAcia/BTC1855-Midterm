@@ -54,14 +54,14 @@ basic_eda <- function(data)
 file_path <- c("/Users/zachery/BTC1855-Midterm")
 
 # Reading station data 
-station <- read.csv("/Users/zachery/BTC1855-Midterm/data/station.csv", header= T, sep = ",")
+station <- read.csv("/Users/zachery/BTC1855-Midterm/Raw data/station.csv", header= T, sep = ",")
 
 # Reading trip data 
-trip <- read.csv("/Users/zachery/BTC1855-Midterm/data/trip.csv", header= T, sep = ",")
+trip <- read.csv("/Users/zachery/BTC1855-Midterm/Raw data/trip.csv", header= T, sep = ",")
 # while default is comma de-limited and with header rows, good to add to remind the structure of raw data 
 
 # Reading weather data 
-weather <- read.csv("/Users/zachery/BTC1855-Midterm/data/weather.csv", header= T, sep = ",")
+weather <- read.csv("/Users/zachery/BTC1855-Midterm/Raw data/weather.csv", header= T, sep = ",")
 # while default is comma de-limited and with header rows, good to add to remind the structure of raw data 
 
 
@@ -679,6 +679,15 @@ trip5 <- left_join(trip4, station2, by = "start_station_id")
 # with correct weather readings
 trip5$date <- date(trip5$start_date)
 
+# Removing other variables in trip dataset (not of interest with correlation to weather)
+trip6 <- trip5 %>% 
+  select(-duration_seconds, -start_date, -start_station, -start_station_id, 
+         -end_date, -end_station, end_station_id, -bike_id, -zip_code, -duration_minutes, 
+         -name, -lat, -long, -dock_count, -installation_date, -end_station_id, -subscription_type) %>%
+  group_by(city, date) %>%
+  summarise(trips = n(), avg_trip_duration = mean(duration_POSIX, na.rm = TRUE))
+
+
 # Left join, trip5 <- weather, matching rows on city + date 
 trip6 <- left_join(trip5, weather2, by = c("city", "date"))
 
@@ -686,8 +695,8 @@ trip6 <- left_join(trip5, weather2, by = c("city", "date"))
 # Removing variables created to match datasets, and non-weather related variables
 # like dock count 
 trip7 <- trip6 %>% 
-  select(-zip_code.x, -name, -city, -installation_date, -bike_id, 
-         -lat, -long, -dock_count, -date, -duration_seconds, 
+  select(-zip_code.x, -name, -installation_date, -bike_id, 
+         -lat, -long, -dock_count, -duration_seconds, 
          -start_station, -end_station, -duration_minutes, -zip_code.y) 
 # NOTE: Joining caused repeat of zipcode, one as number (char), 
 # one as character (int), removed both 
@@ -721,7 +730,14 @@ for (i in seq_len(ncol(trip7))) {
 
 # Removing other variables in trip dataset (not of interest with correlation to weather)
 trip8 <- trip7 %>% 
-  select(-id, -start_station_id, -end_station_id, -subscription_type, end_date)
+  select(-start_station_id, -end_station_id, -subscription_type, end_date) %>%
+  group_by(city) %>%
+  mutate(trips = count(unique(id)))
+
+trip8 <- trip7 %>%
+  select(-id, -start_station_id, -end_station_id, -subscription_type, -end_date) %>%
+  group_by(city, date) %>%
+  summarise(trips = n(), avg_trip_duration = mean(duration_POSIX, na.rm = TRUE))
 
 # Examining the NAs in the data to determine if there are any concerns with correlation 
 summary(trip8)
