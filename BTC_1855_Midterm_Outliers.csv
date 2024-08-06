@@ -1,4 +1,4 @@
-"id","duration_seconds","duration_POSix","start_date","start_station","start_station_id","end_date","end_station","end_station_id","bike_id","subscription_type","zip_code"
+"id","duration_seconds","duration_POSIX","start_date","start_station","start_station_id","end_date","end_station","end_station_id","bike_id","subscription_type","zip_code"
 139745,154,1969-12-31 19:02:34,2014-01-01 13:15:00,"2nd at Folsom","62",2014-01-01 13:17:00,"Howard at 2nd","63",318,"Subscriber","94103"
 139815,102,1969-12-31 19:01:42,2014-01-01 14:40:00,"2nd at South Park","64",2014-01-01 14:42:00,"2nd at Townsend","61",417,"Subscriber","94107"
 140015,104,1969-12-31 19:01:44,2014-01-02 04:38:00,"Howard at 2nd","63",2014-01-02 04:40:00,"Market at Sansome","77",563,"Subscriber","94105"
