@@ -1,6 +1,6 @@
 #' BTC1855 - Midterm, Zachery Chan
 #' R version: Version 2024.04.2+764 (2024.04.2+764)
-#' Code dated to Jul 31
+#' Code dated to Aug 6
 
 #` ---------------------------------------------------------------
 
@@ -485,19 +485,18 @@ colnames(rush_start_table) <- c("start_station", "n")
 # Displaying table for start stations during rush hour 
 rush_start_table
 
-# Graph of station use during rush hour 
+# Graph of start station use during rush hour 
 ggplot(rush_start_table, aes(x = reorder(start_station, n), y = n, fill = start_station)) +
   geom_bar(stat = "identity") +
   coord_flip() +  # Flipping axis 
   xlab("Start Station") +
   ylab("Count") +
-  ggtitle("Start Stations on Weekends") +
+  ggtitle("Start Stations During Rush Hour") +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
         axis.text.y = element_text(size = 7),
         plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) + 
   guides(fill = "none")
-
 
 # Using dplyr to use rush_hours dataset to count the end station names for each trip
 # and then arrange them by descending order, all stored as new table.
@@ -505,8 +504,24 @@ rush_end_table <- rush_hours %>%
   count(rush_hours$end_station) %>%
   arrange(desc(n))
 
+# Setting column names for better readability 
+colnames(rush_end_table) <- c("end_station", "n")
+
 # Displaying table for end stations during rush hour 
 rush_end_table
+
+# Graph of end station use during rush hour 
+ggplot(rush_end_table, aes(x = reorder(end_station, n), y = n, fill = end_station)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +  # Flipping axis 
+  xlab("End Station") +
+  ylab("Count") +
+  ggtitle("End Stations During Rush Hour") +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 7),
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) + 
+  guides(fill = "none")
 
 
 # Combining different weekday plots for report
@@ -660,7 +675,8 @@ trip7$precipitation_inches[trip7$precipitation_inches== "T"] <- 0.0001
 # rather than defining trace amounts as an arbitrary value. 
 
 # Redefining events factor to keep track of events when converted to numeric 
-#' events <- 1 = Fog, 2 = Fog-Rain, 3 = Rain, 4 = Rain-Thunderstorm
+#' events <- 1 = Fog, 2 = Fog-Rain, 3 = Rain, 4 = Rain-Thunderstorm. 
+#' Ranking weather events in terms of severity
 trip7$events <- ifelse(trip7$events == "Fog", 1,
        ifelse(trip7$events == "Fog-Rain", 2,
               ifelse(trip7$events == "Rain", 3, 4)))
@@ -703,7 +719,7 @@ weather_corr
 
 # Graphing correlation for report
 corrplot(weather_corr, method = "square", tl.col = "black", tl.srt = 45, tl.cex = 0.6)
-title(main = "Trip Correlation With Weather", line = 1)
+title(main = "Trip Correlation With Weather", line = 3)
 
 
 
