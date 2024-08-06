@@ -181,6 +181,18 @@ station2 <- station1 %>%
   select(id = id_fctr, name, , lat, long, dock_count, city = city_fctr, installation_date =installation_date_alt)
 
 
+# Basic EDA for weather data 
+basic_eda(weather2)
+
+basic_eda <- function(data)
+{
+  glimpse(data)
+  print(status(data))
+  freq(data) 
+  print(profiling_num(data))
+  plot_num(data)
+  describe(data)
+}
 #` ---------------------------------------------------------------
 
 # Identifying cancelled trips 
@@ -190,8 +202,9 @@ station2 <- station1 %>%
 cancelled <- trip2 %>% 
   filter(duration_seconds < 180 & start_station_id == end_station_id)
 
-# Storing cancelled trips 
-cancelled_trips <- cancelled$id
+# Saving cancelled trips as .csv
+write.csv(cancelled, file = "BTC_1855_Midterm_Cancelled_Trips.csv", row.names = FALSE)
+
 
 # Removing cancelled trips from trip dataset
 trip3 <- trip2 %>% 
