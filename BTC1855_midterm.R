@@ -682,12 +682,13 @@ trip5$date <- date(trip5$start_date)
 # Grouping by city and date to calculate the number of trips per day in each city 
 trips_per_day <- trip5 %>%
   group_by(city, date) %>%
-  summarise(trips = n(), .groups = 'drop') 
+  summarise(trips = n(), .groups = 'drop') # dropping grouping here
 
-# Joining number of trips to trip data, keeps the original number of observations 
+# Joining number of trips to trip data, keeps the original number of 
+# observations but calculates the number of trips for that day 
 trip6 <- left_join(trip5, trips_per_day, by = c("city", "date"))
 
-# Removing unnessary variables (do not need to look at correaltion for factored or vairables not of interest)
+# Removing unnecessary variables (do not need to look at correlation for factored or variables not of interest)
 trip6 <- trip6 %>% 
   select(-duration_seconds, -start_date, -start_station, -start_station_id, 
          -end_date, -end_station, end_station_id, -bike_id, -zip_code, -duration_minutes, 
@@ -734,7 +735,7 @@ summary(trip7)
 # Creating correlation table for weather variables
 weather_corr <- cor(trip7, use = "pairwise.complete.obs")
 
-# Setting names for correlation matrix (better readibiloty and graphing) 
+# Setting names for correlation matrix (better readibility and graphing) 
 corr_names <- c("Trip Duration", "Number of Trips", "Max Temp F", "Mean Temp F", "Min Temp F", 
                "Max Visibilty (miles)", "Mean Visibility (miles)", "Min Visibility (miles)", 
                "Max Wind Speed (mph)", "Mean Wind Speed (mph)", "Max Gust Speed (mph)",
