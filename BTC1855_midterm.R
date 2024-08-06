@@ -689,15 +689,14 @@ trip6 <- trip5 %>%
 
 
 # Left join, trip5 <- weather, matching rows on city + date 
-trip6 <- left_join(trip5, weather2, by = c("city", "date"))
+trip7 <- left_join(trip6, weather2, by = c("city", "date"))
 
 # Removing variables to better construct correlation table 
 # Removing variables created to match datasets, and non-weather related variables
 # like dock count 
-trip7 <- trip6 %>% 
-  select(-zip_code.x, -name, -installation_date, -bike_id, 
-         -lat, -long, -dock_count, -duration_seconds, 
-         -start_station, -end_station, -duration_minutes, -zip_code.y) 
+trip7 <- trip7 %>% 
+  ungroup() %>%
+  select(-zip_code, -date)
 # NOTE: Joining caused repeat of zipcode, one as number (char), 
 # one as character (int), removed both 
 
@@ -717,9 +716,13 @@ trip7$events <- ifelse(trip7$events == "Fog", 1,
        ifelse(trip7$events == "Fog-Rain", 2,
               ifelse(trip7$events == "Rain", 3, 4)))
 
-# Redefining subscription factor to keep track when converted to numeric 
-#' subscription_type <- 1 = Subscriber, 0 = Customer
-trip7$subscription_type <- ifelse(trip7$subscription_type == "Subscriber", 1, 0) 
+trip7$city <- as.character(trip7$city)
+
+trip7$city <- ifelse(trip7$city == "San Francisco", 1,
+                       ifelse(trip7$city == "Mountain View", 2,
+                              ifelse(trip7$city == "Palo Alto", 3,
+                                     ifelse(trip7$city == "San Jose", 4, 5))))
+
 
 # Using for loop to convert all variables to numeric
 for (i in seq_len(ncol(trip7))) {
@@ -728,27 +731,16 @@ for (i in seq_len(ncol(trip7))) {
   }
 } # NOTE: Dates become seconds since epoch (January 1, 1970 (UTC))
 
-# Removing other variables in trip dataset (not of interest with correlation to weather)
-trip8 <- trip7 %>% 
-  select(-start_station_id, -end_station_id, -subscription_type, end_date) %>%
-  group_by(city) %>%
-  mutate(trips = count(unique(id)))
-
-trip8 <- trip7 %>%
-  select(-id, -start_station_id, -end_station_id, -subscription_type, -end_date) %>%
-  group_by(city, date) %>%
-  summarise(trips = n(), avg_trip_duration = mean(duration_POSIX, na.rm = TRUE))
-
 # Examining the NAs in the data to determine if there are any concerns with correlation 
-summary(trip8)
+summary(trip7)
 # Considering the large number of NAs in max gust speed and very large number of 
 # NAs in events, better to use pairwise to maximize data for events
 
 # Creating correlation table for weather variables
-weather_corr <- cor(trip8, use = "pairwise.complete.obs")
+weather_corr <- cor(trip7, use = "pairwise.complete.obs")
 
 # Setting names for correlation matrix (better readibiloty and graphing) 
-corr_names <- c("Duration", "Start Date", "End Date", "Max Temp F", "Mean Temp F", "Min Temp F", 
+corr_names <- c("City", "Number of Trips", "Average Trip Duration", "Max Temp F", "Mean Temp F", "Min Temp F", 
                "Max Visibilty (miles)", "Mean Visibility (miles)", "Min Visibility (miles)", 
                "Max Wind Speed (mph)", "Mean Wind Speed (mph)", "Max Gust Speed (mph)",
                "Precipitation (Inches)", "Cloud Cover", "Weather Events")
@@ -763,6 +755,7 @@ weather_corr
 # Graphing correlation for report
 corrplot(weather_corr, method = "square", tl.col = "black", tl.srt = 45, tl.cex = 0.6)
 title(main = "Trip Correlation With Weather", line = 3)
+
 
 
 
