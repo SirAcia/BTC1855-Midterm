@@ -1,10 +1,14 @@
 #' BTC1855 - Midterm, Zachery Chan
 #' R version: Version 2024.04.2+764 (2024.04.2+764)
+#' Github Repo: https://github.com/SirAcia/BTC1855-Midterm.git
 #' Code dated to Aug 6
 
 #` ---------------------------------------------------------------
 
-# Setting libraries 
+#########################################################
+################ Setting Libraries ######################
+#########################################################
+
 library(tidyr)
 library(ggplot2)
 library(dplyr)
@@ -19,7 +23,9 @@ library(cowplot)
 
 #` ---------------------------------------------------------------
 
-# Creating functions
+#########################################################
+######### Defining Custom Functions #####################
+#########################################################
 
 # Function for checking if any empty values (i.e. just "", and not as an NA)
 empty_string <- function(col) {
@@ -40,7 +46,10 @@ basic_eda <- function(data)
 
 #` ---------------------------------------------------------------
 
-# Reading raw data 
+#########################################################
+#################  Reading Raw Data #####################
+#########################################################
+
 # Setting file path to read files 
 file_path <- c("/Users/zachery/BTC1855-Midterm")
 
@@ -58,7 +67,11 @@ weather <- read.csv("/Users/zachery/BTC1855-Midterm/data/weather.csv", header= T
 
 #` ---------------------------------------------------------------
 
-# Exploratory fucntions for datasets 
+#########################################################
+######### Exploratory Functions & Cleaning ##############
+#########################################################
+
+# Exploratory functions for datasets 
 glimpse(trip)
 summary(trip)
 # Notably, massive positive skew for trip duration, majority is much closer to 0 
@@ -68,6 +81,7 @@ summary(station)
 
 glimpse(weather)
 summary(weather)
+# Lots of missingness for precipitation and weather events
 
 # Checking for missingness in datasets 
 anyNA(trip)
@@ -77,7 +91,7 @@ empty_string(trip)
 anyNA(weather)
 empty_string(weather)
 # Need to address empty strings in trip 
-# NAs are mainly in events and max wind speed
+# NAs/"" are mainly in events, precipitation, max gust speed 
 
 # Saving data in new frames to retain data integrity 
 trip1 <- trip
@@ -118,14 +132,14 @@ trip1$start_station_name_fctr <- factor(trip1$start_station_name)
 # Factoring subscription type 
 trip1$subscription_type_fctr <- factor(trip1$subscription_type)
 
-# Converting dates into POSix 
+# Converting dates into POSIX
 # Converting start date of trip
 trip1$start_date_alt <- mdy_hm(trip1$start_date)
 
 # Converting end date of trip
 trip1$end_date_alt <- mdy_hm(trip1$end_date)
 
-# Converting duration of trip into POSix
+# Converting duration of trip into POSIX
 trip1$duration_alt <- as.POSIXct(trip1$duration)
 
 
@@ -138,7 +152,7 @@ weather1$events[weather1$events == "rain"] <- "Rain"
 
 weather1$events_fctr <- factor(weather1$events)
 
-# Converting date into POSix
+# Converting date into POSIX
 weather1$date_alt <- mdy(weather1$date)
 
 # Factoring city
@@ -146,7 +160,7 @@ weather1$city_fctr <- factor(weather1$city)
 
 # Cleaning station data 
 # Overall station data is very clean, only need to factor city (only a few cities)
-# and convert dates into POSix
+# and convert dates into POSIX
 
 # Factoring city
 station1$city_fctr <- factor(station1$city)
@@ -157,14 +171,14 @@ station1$id_fctr <- factor(station1$id)
 # Factoring station name to match with trip dataset
 station1$name_fctr <- factor(station1$name)
 
-# Converting to POSix
+# Converting to POSIX
 station1$installation_date_alt <- mdy(station1$installation_date)
 
 # Saving corrected structure for trip dataset in new dataframe
 trip2 <- trip1 %>% 
   select(-start_date, - end_date, -start_station_name, -subscription_type, 
          -end_station_name, -start_station_id, end_station_id)  %>%
-  select(id, duration_seconds = duration, duration_POSix = duration_alt, 
+  select(id, duration_seconds = duration, duration_POSIX = duration_alt, 
          start_date = start_date_alt, start_station = start_station_name_fctr, 
          start_station_id = start_station_id_fctr, end_date = end_date_alt, 
          end_station = end_station_name_fctr, end_station_id = end_station_id_fctr, 
@@ -198,7 +212,9 @@ basic_eda(weather_graph)
 
 #` ---------------------------------------------------------------
 
-# Identifying cancelled trips 
+#########################################################
+########### Identifying Cancelled Trips #################
+#########################################################
 
 # Identifying cancelled trips of trips with less than 180 seconds (3 minutes)
 # and trips that start and end at the same station, storing trip ids 
@@ -216,7 +232,9 @@ trip3 <- trip2 %>%
 
 #` ---------------------------------------------------------------
 
-# Identifying outliers 
+#########################################################
+############## Identifying Outliers #####################
+#########################################################
 
 # Converting duration into minutes to more easily comprehend
 trip3$duration_minutes <- trip3$duration_seconds/60
@@ -305,9 +323,11 @@ colnames(cleaned_data) <- c("ID", "Duration", "Start Date", "Start Station", "St
 # Using EDA functions to get summary graphs of data (beyond trip duration)
 basic_eda(cleaned_data)
 
-#` ----------------------------------------------------------------
+#` -----------------------------------------------------------------------------
 
-# Identifying Rush Hours 
+#########################################################
+############## Identifying Rush Hours ###################
+#########################################################
 
 # Examining start date as you needa bike when you start a trip, not when you end a trip
 summary(trip3$start_date)
@@ -420,10 +440,11 @@ fri_plot
 # Examining the histograms, it seems that the rush hours for weekdays are 
 # 06:00 - 09:00 and 15:00 - 18:00. 
 
+#` -----------------------------------------------------------------------------
 
-#` ---------------------------------------------------------------
-
-# Examining Rush Hours 
+#########################################################
+############# Examining Rush Hours  #####################
+#########################################################
 
 # Do rush hours extend to the weekend? 
 # Mutating to get hour and month for Saturdays, sorting by month and filtering 
@@ -535,9 +556,11 @@ week_plot <- plot_grid(
 
 week_plot
 
-#` ---------------------------------------------------------------
+#` -----------------------------------------------------------------------------
 
-# Weekend analysis 
+#########################################################
+############# Weekend analysis ##########################
+#########################################################
 
 # Using weekends dataframe created previously 
 
@@ -591,9 +614,11 @@ ggplot(wknd_end_table, aes(x = reorder(end_station, n), y = n, fill = end_statio
         plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) + 
   guides(fill = "none")
 
-#` ---------------------------------------------------------------
+#` -----------------------------------------------------------------------------
 
-# Finding average utilisation of bikes per month
+#########################################################
+########### Average Utilisation Per Month ###############
+#########################################################
 
 # Similar to previous task, creating month variable and variable for days in month
 month_total <- trip4 %>%
@@ -601,8 +626,8 @@ month_total <- trip4 %>%
   mutate(month_days = days_in_month(start_date)) %>% # Creating new variable for days in month from start date (in case of leap year)
   group_by(month, month_days) %>%
   summarise(month_duration = sum(duration_seconds, na.rm = T), .groups = 'drop') #Using groups = 'drops' to ensure days in momnth appears in table
-# NOTE: using the raw duration in seconds here as sum cannot be used on POSix
-# and that using the start and end dates (in POSix) only record the hour & minute 
+# NOTE: using the raw duration in seconds here as sum cannot be used on POSIX
+# and that using the start and end dates (in POSIX) only record the hour & minute 
 # of the trip. Using the difference between start and end date (i.e. with 
 # time_length() results in rounding up/down to the nearest minute)
 
@@ -632,9 +657,11 @@ ggplot(month_total, aes(x = month, y = average)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1), 
         plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
 
-#` ---------------------------------------------------------------
+#` -----------------------------------------------------------------------------
 
-# Creating Correlation Table For Weather 
+#########################################################
+############# Weather Correlation #######################
+#########################################################
 
 # Joining station to trip4
 # Need to rename station id in trip 4 to match column name to join datasets 
@@ -647,7 +674,7 @@ station2$start_station_id <- factor(station2$start_station_id)
 # Left join, trip <- station, matching rows on station id
 trip5 <- left_join(trip4, station2, by = "start_station_id")
 
-# Removing hours and minutes from POSix in start date to match the dates 
+# Removing hours and minutes from POSIX in start date to match the dates 
 # in weather storing as new variable, using start date to match individual trips
 # with correct weather readings
 trip5$date <- date(trip5$start_date)
