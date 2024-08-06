@@ -1,4 +1,4 @@
-"id","duration_seconds","duration_POSix","start_date","start_station","start_station_id","end_date","end_station","end_station_id","bike_id","subscription_type","zip_code"
+"id","duration_seconds","duration_POSIX","start_date","start_station","start_station_id","end_date","end_station","end_station_id","bike_id","subscription_type","zip_code"
 139945,73,1969-12-31 19:01:13,2014-01-01 17:57:00,"5th at Howard","57",2014-01-01 17:59:00,"5th at Howard","57",509,"Subscriber","94103"
 139967,160,1969-12-31 19:02:40,2014-01-01 19:11:00,"California Ave Caltrain Station","36",2014-01-01 19:13:00,"California Ave Caltrain Station","36",51,"Customer","6877"
 140179,63,1969-12-31 19:01:03,2014-01-02 08:32:00,"2nd at Folsom","62",2014-01-02 08:33:00,"2nd at Folsom","62",632,"Subscriber","94107"
